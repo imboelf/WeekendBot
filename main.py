@@ -1,9 +1,9 @@
 import json
-
 import requests
 from bs4 import BeautifulSoup
 import time
 from selenium import webdriver
+from datetime import datetime
 
 
 
@@ -18,8 +18,8 @@ def get_data(url):
     }
     resp = requests.get(url=url, headers=headers)
 
-    with open("index.html", "w", encoding='utf-8') as file:
-         file.write(resp.text)
+    # with open("index.html", "w", encoding='utf-8') as file:
+    #      file.write(resp.text)
 
 
 def get_data_selenium(url):
@@ -50,21 +50,30 @@ def get_data_selenium(url):
     soup = BeautifulSoup(src, "lxml")
 
     hotels_cards = soup.find_all("div", class_="tile-item")
-
-    hotels_dict = {}
-
+    cur_date = datetime.now().strftime("%d_%m_%Y")
+    table = []
     for hotel_url in hotels_cards:
-        hotel_url_text = hotel_url.text
         hotel_url = "https://tourist.tez-tour.com" + hotel_url.find("a").get("href")
-        hotels_dict[hotel_url_text] = hotel_url
+
         # print(hotel_url)
+        for item in hotels_cards:
+            direction = item.find("div", class_="direction").text
+            arrival = item.find("div", class_="arrival").text
+            price = item.find("span", class_="price").text
+            hotel_name = item.find("div", class_="hotel-name is-hover-show").text
+            #print(f"Direction: {direction}, Arrival: {arrival}, Price: {price}, Hotel: {hotel_name}, URL: {hotel_url}")
 
-    soup = BeautifulSoup(src, "lxml")
-
-    hotels_city = soup.find_all("div", class_="arrival")
-
-    with open(f'data/hotels.json', "w", encoding="utf-8-sig") as file:
-        json.dump(hotels_dict, file, indent=4, ensure_ascii=False)
+            table.append(
+                {
+                    "direction": direction,
+                    "arrival": arrival,
+                    "price": price,
+                    "hotel_name": hotel_name,
+                    "URL": hotel_url
+                }
+            )
+    with open(f'data/hotels_{cur_date}.json', "a", encoding="utf-8") as file:
+        json.dump(table, file, indent=4, ensure_ascii=False)
 
 def main():
     get_data_selenium("https://tourist.tez-tour.com/bestoffers.ru")
@@ -73,3 +82,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+                    # "direction": direction,
+                    # "arrival": arrival,
+                    # "price": price,
+                    # "hotel_name": hotel_name,
+                    # "URL": hotel_url
